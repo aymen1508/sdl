@@ -1,9 +1,10 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
+#include <SDL/SDL_mixer.h>
 
 // Function prototypes
-void scene1(SDL_Surface *screen);
-void scene2(SDL_Surface *screen);
+void scene1(SDL_Surface *screen, Mix_Chunk *hoverSound);
+void scene2(SDL_Surface *screen, Mix_Chunk *hoverSound);
 
 int main(int argc, char *argv[])
 {
@@ -23,13 +24,38 @@ int main(int argc, char *argv[])
 
     SDL_WM_SetCaption("Simple SDL Program", NULL);
 
-    scene1(screen);
+    if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096) == -1)
+    {
+        printf("Unable to initialize SDL_mixer: %s\n", Mix_GetError());
+        return 1;
+    }
 
+    Mix_Music *backgroundMusic = Mix_LoadMUS("assets/music.wav");
+    if (!backgroundMusic)
+    {
+        printf("Unable to load background music: %s\n", Mix_GetError());
+        return 1;
+    }
+
+    Mix_Chunk *hoverSound = Mix_LoadWAV("assets/hover.wav");
+    if (!hoverSound)
+    {
+        printf("Unable to load hover sound: %s\n", Mix_GetError());
+        return 1;
+    }
+
+    Mix_PlayMusic(backgroundMusic, -1);
+
+    scene1(screen, hoverSound);
+
+    Mix_FreeMusic(backgroundMusic);
+    Mix_FreeChunk(hoverSound);
+    Mix_CloseAudio();
     SDL_Quit();
     return 0;
 }
 
-void scene1(SDL_Surface *screen)
+void scene1(SDL_Surface *screen, Mix_Chunk *hoverSound)
 {
     SDL_Surface *background = IMG_Load("assets/background.png");
     SDL_Surface *button_mono = IMG_Load("assets/monojoueur.png");
@@ -56,6 +82,9 @@ void scene1(SDL_Surface *screen)
     int button_mono_pressed = 0;
     int button_multi_pressed = 0;
     int button_retour_pressed = 0;
+    int last_button_mono_pressed = 0;
+    int last_button_multi_pressed = 0;
+    int last_button_retour_pressed = 0;
     SDL_Event event;
 
     while (running)
@@ -85,15 +114,32 @@ void scene1(SDL_Surface *screen)
                 if (x > button_mono_rect.x && x < button_mono_rect.x + button_mono_rect.w &&
                     y > button_mono_rect.y && y < button_mono_rect.y + button_mono_rect.h)
                 {
-                    scene2(screen);
+                    scene2(screen, hoverSound);
                 }
                 else if (x > button_multi_rect.x && x < button_multi_rect.x + button_multi_rect.w &&
                          y > button_multi_rect.y && y < button_multi_rect.y + button_multi_rect.h)
                 {
-                    scene2(screen);
+                    scene2(screen, hoverSound);
                 }
             }
         }
+
+        if (button_mono_pressed && !last_button_mono_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_multi_pressed && !last_button_multi_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_retour_pressed && !last_button_retour_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+
+        last_button_mono_pressed = button_mono_pressed;
+        last_button_multi_pressed = button_multi_pressed;
+        last_button_retour_pressed = button_retour_pressed;
 
         SDL_BlitSurface(background, NULL, screen, &background_rect);
         if (button_mono_pressed)
@@ -132,7 +178,7 @@ void scene1(SDL_Surface *screen)
     SDL_FreeSurface(button_retour_clicked);
 }
 
-void scene2(SDL_Surface *screen)
+void scene2(SDL_Surface *screen, Mix_Chunk *hoverSound)
 {
     SDL_Surface *background = IMG_Load("assets/background.png");
     SDL_Surface *button_avatar1 = IMG_Load("assets/avatar1.png");
@@ -171,6 +217,12 @@ void scene2(SDL_Surface *screen)
     int button_input2_pressed = 0;
     int button_valider_pressed = 0;
     int button_retour_pressed = 0;
+    int last_button_avatar1_pressed = 0;
+    int last_button_avatar2_pressed = 0;
+    int last_button_input1_pressed = 0;
+    int last_button_input2_pressed = 0;
+    int last_button_valider_pressed = 0;
+    int last_button_retour_pressed = 0;
     SDL_Event event;
 
     while (running)
@@ -206,10 +258,42 @@ void scene2(SDL_Surface *screen)
                 if (button_retour_pressed && x > button_retour_rect.x && x < button_retour_rect.x + button_retour_rect.w &&
                     y > button_retour_rect.y && y < button_retour_rect.y + button_retour_rect.h)
                 {
-                    scene1(screen);
+                    scene1(screen, hoverSound);
                 }
             }
         }
+
+        if (button_avatar1_pressed && !last_button_avatar1_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_avatar2_pressed && !last_button_avatar2_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_input1_pressed && !last_button_input1_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_input2_pressed && !last_button_input2_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_valider_pressed && !last_button_valider_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+        if (button_retour_pressed && !last_button_retour_pressed)
+        {
+            Mix_PlayChannel(-1, hoverSound, 0);
+        }
+
+        last_button_avatar1_pressed = button_avatar1_pressed;
+        last_button_avatar2_pressed = button_avatar2_pressed;
+        last_button_input1_pressed = button_input1_pressed;
+        last_button_input2_pressed = button_input2_pressed;
+        last_button_valider_pressed = button_valider_pressed;
+        last_button_retour_pressed = button_retour_pressed;
 
         SDL_BlitSurface(background, NULL, screen, &background_rect);
         if (button_avatar1_pressed)
